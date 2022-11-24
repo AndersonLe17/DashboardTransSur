@@ -19,7 +19,8 @@ async function validarSesion() {
     });
     if (response.status == 200) {
         let content = await response.json();
-        if(content.roles[0].tipo != "ROLE_ADMIN"){
+        const pass = (content.roles[0].idRol == 1)? true : (content.roles[1].idRol == 1)? true : false;
+        if(!pass){
             localStorage.numDocOrEmail = "";
             localStorage.token = "";
             location.href = "./pages/login/login.html";
@@ -30,3 +31,8 @@ async function validarSesion() {
         location.href = "./pages/login/login.html";
     }
 }
+
+document.querySelector('.modal-footer .btn-danger').addEventListener('click', () => {
+    localStorage.clear();
+    location.href = "./pages/login/login.html";
+});

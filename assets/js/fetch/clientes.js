@@ -13,7 +13,7 @@ $(document).ready(function () {
 
     var table;
     function cargarRegistros() {
-        var table = $('#tableClientes').DataTable({
+        table = $('#tableClientes').DataTable({
             "ajax": {
                 "url": "http://localhost:8080/api/usuario/cliente",
                 "method": "GET",
@@ -148,11 +148,14 @@ $(document).ready(function () {
         cliente.nombre = document.getElementById("inputEditNombre").value;
         cliente.apellido = document.getElementById("inputEditApellido").value;
         cliente.numDoc = document.getElementById("inputEditNumDoc").value;
-        cliente.fechaNacimiento = document.getElementById("inputEditFechaNacimiento").value;
         cliente.email = document.getElementById("inputEditEmail").value;
         cliente.password = cliente.numDoc;
         cliente.celular = document.getElementById("inputEditCelular").value;
         cliente.estado = document.getElementById("selectEditEstado").value;
+
+        let nacimientoDate = new Date(document.getElementById("inputEditFechaNacimiento").value);
+
+        cliente.fechaNacimiento = nacimientoDate.setDate(nacimientoDate.getDate() + 1);
 
         let idUsuario = document.getElementById("inputIdUsuario").value;
         let doc = document.getElementById("selectEditDocumento").value;
@@ -210,7 +213,8 @@ $(document).ready(function () {
         });
         if (response.status == 200) {
             let content = await response.json();
-            if(content.roles[0].tipo != "ROLE_ADMIN"){
+            const pass = (content.roles[0].idRol == 1)? true : (content.roles[1].idRol == 1)? true : false;
+            if(!pass){
                 localStorage.numDocOrEmail = "";
                 localStorage.token = "";
                 location.href = "../login/login.html";
@@ -222,4 +226,9 @@ $(document).ready(function () {
             location.href = "../login/login.html";
         }
     }
+
+    document.querySelector('.modal-footer .btn-danger').addEventListener('click', () => {
+        localStorage.clear();
+        location.href = "../login/login.html";
+    });
 });

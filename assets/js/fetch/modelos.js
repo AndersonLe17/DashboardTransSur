@@ -67,6 +67,7 @@ $(document).ready(function () {
             document.getElementById("btn-modalClose").click();
             table.ajax.reload(null, false);
             alertify.success('Agregado');
+            limpiarCampos();
         } else {
             alertify.error('Modelo Existente');
         }
@@ -118,7 +119,7 @@ $(document).ready(function () {
                             <div class="form-floating col-12">
                                 <textarea class="form-control" placeholder="Descripción" id="areaEditDescripcion">`+modelo.descripcion+`</textarea>
                                 <label for="areaEditDescripcion">Descripción</label>
-                              </div>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -198,7 +199,8 @@ $(document).ready(function () {
         });
         if (response.status == 200) {
             let content = await response.json();
-            if(content.roles[0].tipo != "ROLE_ADMIN"){
+            const pass = (content.roles[0].idRol == 1)? true : (content.roles[1].idRol == 1)? true : false;
+            if(!pass){
                 localStorage.numDocOrEmail = "";
                 localStorage.token = "";
                 location.href = "../../login/login.html";
@@ -209,5 +211,16 @@ $(document).ready(function () {
             localStorage.token = "";
             location.href = "../../login/login.html";
         }
+    }
+
+    document.querySelector('.modal-footer .btn-danger').addEventListener('click', () => {
+        localStorage.clear();
+        location.href = "../../login/login.html";
+    });
+
+    function limpiarCampos() {
+        document.getElementById("inputModelo").value = "";
+        document.getElementById("areaDescripcion").value = "";
+        document.getElementById("selectEstado").selectedIndex = 0;
     }
 });

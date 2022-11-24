@@ -9,7 +9,13 @@ $(document).ready(function () {
 
     let estados = ['<span class="badge bg-success text-white">Active</span>',
                     '<span class="badge bg-secondary text-white">Inactive</span>',
-                    '<span class="badge bg-danger text-white">Block</span>'];
+                    '<span class="badge bg-danger text-white">Block</span>',
+                    '<span class="badge bg-primary text-white">Assigned</span>'];
+
+    let roles = ['<span class="badge bg-dark text-white">Admin</span>',
+                '<span class="badge bg-warning text-dark">Counter</span>',
+                '<span class="badge bg-info text-dark">Driver</span>',
+                '<span class="badge bg-light text-dark">Operator</span>'];
 
     var table;
 
@@ -25,20 +31,34 @@ $(document).ready(function () {
             },
             "columns": [
                 {"data": "idUsuario", className: "align-middle"},
-                {"data": "roles[0].tipo", className: "align-middle"},
+                {"data": "roles", className: "align-middle", "render": function (data) {
+                    const rol = (data[0].idRol != 2)? data[0]:data[1];
+                    switch (rol.idRol) {
+                        case 1:
+                            return roles[0];
+                        case 3:
+                            return roles[1];
+                        case 4:
+                            return roles[2];
+                        case 5:
+                            return roles[3];
+                    }
+                }},
                 {"data": "documento.tipo", className: "align-middle"},
                 {"data": "numDoc", className: "align-middle"},
                 {"data": "nombre", className: "align-middle"},
                 {"data": "apellido", className: "align-middle"},
                 {"data": "celular", className: "align-middle"},
                 {"data": "estado", className: "align-middle", "render": function (data) {
-                    switch(data){
+                    switch (data) {
                         case 'Activo':
                             return estados[0];
                         case 'Inactivo':
                             return estados[1];
                         case 'Bloqueado':
                             return estados[2];
+                        case 'Asignado':
+                            return estados[3];
                     }
                 }},
                 {"data": "idUsuario", className: "align-middle", "render": function (data) {
@@ -63,11 +83,14 @@ $(document).ready(function () {
         personal.nombre = document.getElementById("inputNombre").value;
         personal.apellido = document.getElementById("inputApellido").value;
         personal.numDoc = document.getElementById("inputNumDoc").value;
-        personal.fechaNacimiento = document.getElementById("inputFechaNacimiento").value;
         personal.email = personal.numDoc + "@transsurf.com";
         personal.password = personal.numDoc;
         personal.celular = document.getElementById("inputCelular").value;
         personal.estado = document.getElementById("selectEstado").value;
+
+        let nacimientoDate = new Date(document.getElementById("inputFechaNacimiento").value);
+
+        personal.fechaNacimiento = nacimientoDate.setDate(nacimientoDate.getDate() + 1);
 
         let doc = document.getElementById("selectDocumento").value;
         let rol = document.getElementById("selectRol").value;
@@ -83,6 +106,7 @@ $(document).ready(function () {
             document.getElementById("btn-modalClose").click();
             table.ajax.reload(null, false);
             alertify.success('Agregado');
+            limpiarCampos();
         } else {
             let content = await response.text();
             alertify.error(content);
@@ -165,6 +189,7 @@ $(document).ready(function () {
                                 <select class="form-select" id="selectEditEstado" aria-label="Estado">
                                     <option value="Activo" `+((personal.estado == "Activo")?'selected':'')+`>Activo</option>
                                     <option value="Inactivo" `+((personal.estado == "Inactivo")?'selected':'')+`>Inactivo</option>
+                                    ${(personal.estado == "Asignado")? '<option value="Asignado" selected>Asignado</option>':''}
                                     <option value="Bloqueado" `+((personal.estado == "Bloqueado")?'selected':'')+`>Bloqueado</option>
                                 </select>
                                 <label for="selectEstado">Estado</label>
@@ -201,11 +226,14 @@ $(document).ready(function () {
         personal.nombre = document.getElementById("inputEditNombre").value;
         personal.apellido = document.getElementById("inputEditApellido").value;
         personal.numDoc = document.getElementById("inputEditNumDoc").value;
-        personal.fechaNacimiento = document.getElementById("inputEditFechaNacimiento").value;
         personal.email = personal.numDoc + "@transsurf.com";
         personal.password = personal.numDoc;
         personal.celular = document.getElementById("inputEditCelular").value;
         personal.estado = document.getElementById("selectEditEstado").value;
+
+        let nacimientoDate = new Date(document.getElementById("inputEditFechaNacimiento").value);
+
+        personal.fechaNacimiento = nacimientoDate.setDate(nacimientoDate.getDate() + 1);
 
         let idUsuario = document.getElementById("inputIdUsuario").value;
         let doc = document.getElementById("selectEditDocumento").value;
@@ -253,7 +281,8 @@ $(document).ready(function () {
         });
         if (response.status == 200) {
             let content = await response.json();
-            if(content.roles[0].tipo != "ROLE_ADMIN"){
+            const pass = (content.roles[0].idRol == 1)? true : (content.roles[1].idRol == 1)? true : false;
+            if(!pass){
                 localStorage.numDocOrEmail = "";
                 localStorage.token = "";
                 location.href = "../login/login.html";
@@ -264,6 +293,22 @@ $(document).ready(function () {
             localStorage.token = "";
             location.href = "../login/login.html";
         }
+    }
+
+    document.querySelector('.modal-footer .btn-danger').addEventListener('click', () => {
+        localStorage.clear();
+        location.href = "../login/login.html";
+    });
+
+    function limpiarCampos() {
+        document.getElementById("inputNombre").value = "";
+        document.getElementById("inputApellido").value = "";
+        document.getElementById("inputNumDoc").value = "";
+        document.getElementById("inputCelular").value = "";
+        document.getElementById("selectEstado").selectedIndex = 0;
+        document.getElementById("inputFechaNacimiento").value = "";
+        document.getElementById("selectDocumento").selectedIndex = 0;
+        document.getElementById("selectRol").selectedIndex = 0;
     }
 });
 
